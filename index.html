@@ -329,7 +329,7 @@
       row.parentElement.removeChild(row);
     }
     async function submitwebhook() {
-    const webhookURL = process.env.Discord_webhook;
+    
     const form = document.querySelector('.container');
     const inputs = form.querySelectorAll('input, select, textarea');
     let data = {};
@@ -384,6 +384,7 @@
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error:', errorText);
+            alert(errorText)
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
