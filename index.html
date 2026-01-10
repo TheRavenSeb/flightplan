@@ -373,7 +373,7 @@
 
     try {
         const body = JSON.stringify(data);
-        const response = await fetch(webhookURL, {
+        const response = await fetch("https://arcane-magica.com/systems/atc/discord", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
