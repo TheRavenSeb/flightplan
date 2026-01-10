@@ -329,71 +329,93 @@
       row.parentElement.removeChild(row);
     }
     async function submitwebhook() {
-    
-    const form = document.querySelector('.container');
-    const inputs = form.querySelectorAll('input, select, textarea');
-    let data = {};
+      const form = document.querySelector('.container');
+      const inputs = form.querySelectorAll('input, select, textarea');
+      let data = {};
 
-    // Collect form data with proper validation
-    inputs.forEach(input => {
+      // Collect form data with proper validation
+      inputs.forEach(input => {
         if (input.closest('table') === null) {
-            const value = input.value.trim();
-            if (value || input.name === "copilot") {
-                data[input.name] = value || null;
-            }
+          const value = input.value.trim();
+          if (value || input.name === 'copilot') {
+            data[input.name] = value || null;
+          }
         }
-    });
+      });
 
-    // Process navigation log
-    const table = document.getElementById('navigationLog');
-    const rows = table.querySelectorAll('tbody tr');
-    data.navigationLog = Array.from(rows).map(row => {
-        const cells = row.querySelectorAll('input');
-        if (!cells.length || !cells[0].value) return null;
-        
-        return {
+      // Process navigation log
+      const table = document.getElementById('navigationLog');
+      const rows = table.querySelectorAll('tbody tr');
+      data.navigationLog = Array.from(rows)
+        .map(row => {
+          const cells = row.querySelectorAll('input');
+          if (!cells.length || !cells[0].value) return null;
+          return {
             waypoint: cells[0]?.value ?? '',
             distance: cells[1]?.value ?? '',
             heading: cells[2]?.value ?? '',
             groundSpeed: cells[3]?.value ?? ''
-        };
-    }).filter(log => log !== null);
+          };
+        })
+        .filter(log => log !== null);
 
-    // Format navigation log string
-    if (data.navigationLog.length > 0) {
-        data.navigationLog = data.navigationLog.map(nav => 
-            `Waypoint: ${nav.waypoint}, Distance: ${nav.distance}, Heading: ${nav.heading}, Ground Speed: ${nav.groundSpeed}`
-        ).join('\n');
-    }else {
-        data.navigationLog ="None";
-    }
+      // Format navigation log string
+      if (data.navigationLog.length > 0) {
+        data.navigationLog = data.navigationLog
+          .map(nav => `Waypoint: ${nav.waypoint}, Distance: ${nav.distance}, Heading: ${nav.heading}, Ground Speed: ${nav.groundSpeed}`)
+          .join('\n');
+      } else {
+        data.navigationLog = 'None';
+      }
 
-    // Create embed with proper field naming
-    
+      const endpoint = 'https://arcane-magica.com/systems/atc/discord';
 
-    try {
-        const body = JSON.stringify(data);
-        const response = await fetch("https://arcane-magica.com/systems/atc/discord", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body:body
+      // First attempt: standard JSON POST (will preflight)
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error:', errorText);
-            alert(errorText)
-            throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error('Primary POST error:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         alert('Flight plan submitted successfully!');
-    } catch (error) {
-        console.error('Error submitting flight plan:', error);
-        alert('Failed to submit flight plan. Please check the console for details.');
+        return;
+      } catch (primaryError) {
+        // Likely a CORS/preflight failure from the destination server
+        console.warn('Primary JSON POST failed, attempting CORS-safe fallback...', primaryError);
+      }
+
+      // Fallback: CORS-safe "simple" request using FormData (no custom headers, avoids preflight)
+      try {
+        const fd = new FormData();
+        // Send the entire payload as a single field; backend should parse JSON from this field
+        fd.append('payload', JSON.stringify(data));
+
+        const response2 = await fetch(endpoint, {
+          method: 'POST',
+          body: fd
+          // Note: do NOT set headers here; letting the browser set multipart/form-data avoids preflight
+        });
+
+        // If CORS is not enabled, the response may be opaque and we can't read status/body
+        if (response2.type === 'opaque' || response2.ok) {
+          alert('Flight plan submitted (fallback). If you don\'t see it on Discord, the server must enable CORS.');
+        } else {
+          const txt = await response2.text().catch(() => 'Unknown error');
+          console.error('Fallback POST error:', txt);
+          throw new Error(`Fallback HTTP error! status: ${response2.status}`);
+        }
+      } catch (fallbackError) {
+        console.error('Error submitting flight plan (fallback):', fallbackError);
+        alert('Submission failed due to CORS on the destination server. Please contact the server admin to enable CORS or use a server-side proxy.');
+      }
     }
-}
 
 
     
