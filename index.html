@@ -369,35 +369,10 @@
     }
 
     // Create embed with proper field naming
-    const embedBody = {
-        content: '<@&1325493076332118026> incoming ATC Flight Plan', // Empty content field
-        "embeds": [{
-            title: 'Flight Plan',
-            description: `Here is the flight plan for callsign ${data.flightName || '(Not specified)'}`,
-            color: 0xFFA500,
-            fields: [
-                { name: 'SessionID', value: data.sessionID || '(Not specified)' },
-                { name: 'Session Map', value: data.sessionMap || '(Not specified)' },
-                { name: 'Flight Callsign', value: data.flightName || '(Not specified)' },
-                { name: 'Aircraft Type', value: data.aircraftType || '(Not specified)' },
-                { name: 'Cruising Altitude', value: data.altitude || '(Not specified)' },
-                { name: 'Departure Location', value: data.departure || '(Not specified)' },
-                { name: 'Destination', value: data.destination || '(Not specified)' },
-                { name: 'Total Fuel Onboard', value: data.totalFuel || '(Not specified)' },
-                { name: 'Bingo Fuel Level', value: data.bingoFuel || '(Not specified)' },
-                { name: 'Weather Briefing', value: data.weatherBriefing || '(Not specified)' },
-                { name: 'Navigation Log', value: data.navigationLog.toString() || 'None' },
-                { name: 'Pilot in Command', value: data.pic + " " + data["role"] || '(Not specified)' },
-                { name: 'Co-Pilot', value: data.copilot + " " + data["co-role"] || 'None' },
-                { name: 'Radio Frequencies', value: data.radioFrequencies || '(Not specified)' },
-                { name: 'Additional Notes', value: data.additionalNotes || '(Not specified)' }
-            ],
-            timestamp: new Date().toISOString()
-        }]
-    };
+    
 
     try {
-        const body = JSON.stringify(embedBody);
+        const body = JSON.stringify(data);
         const response = await fetch(webhookURL, {
             method: 'POST',
             headers: {
