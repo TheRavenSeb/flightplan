@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <title>VFR Flight Planning Sheet</title>
   <style>
     body {
@@ -20,6 +22,12 @@
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       border: 1px solid #ddd;
+    }
+    /*!SECTION: Squawk Code Styling is placed in the title as a <span> on the right side of the title */
+    .squawk-code { 
+      float: right;
+      font-size: 0.9rem;
+      color: #007bff;
     }
 
     h1 {
@@ -140,12 +148,12 @@
     }
   </style>
 </head>
-<body>
+<body id="capture-area">
   <div class="container">
     <h1>IFR Flight Planning Sheet</h1>
     <!-- General Session Section -->
      <div class="section">
-      <div class="section-title">General Information</div>
+      <div class="section-title">General Information <span class="squawk-code" id="squawkCode"> Aircraft ID (squawk Code): 0000</span></div>
       <div class="form-row">
         <div class="form-group">
           <label for="date">Date:</label>
@@ -311,6 +319,52 @@
         
       }
     });
+
+    function takeScreenshot() {
+    // Select the element to capture
+    const elementToCapture = document.getElementById('capture-area');
+
+    html2canvas(elementToCapture).then(canvas => {
+        // Convert canvas to an image data URL
+        const imageDataUrl = canvas.toDataURL('image/png');
+
+        // Create a temporary link element for downloading
+        const link = document.createElement('a');
+        link.href = imageDataUrl;
+        link.download = 'screenshot.png'; // Specify filename
+
+        // Trigger the download
+        link.click();
+    });
+}
+    function generateIRFNumber(aircraftType, flightName){
+      let squawk = '';
+
+      const type = aircraftType.toUpperCase();
+      const callsign = flightName.toUpperCase();
+      const calltype = `${callsign.charAt(0)} ${callsign.charAt(callsign.indexOf('-') - 1)} - ${callsign.charAt(callsign.indexOf('-') + 1)}-`
+
+      if (type === 'AV-42C') {
+        squawk = `${calltype}`+'1001';
+      } else if (type === 'F/A-26B') {
+        squawk = `${calltype}`+'2002';
+      } else if (type === 'F-45A') {
+        squawk = `${calltype}`+'3003';
+      } else if (type === 'AH-94') {
+        squawk = `${calltype}`+'4004';
+      } else if (type === 'T-55') {
+        squawk = `${calltype}`+'5005';
+      } else if (type === 'EF-24G') {
+        squawk = `${calltype}`+'6006';
+      } else {
+        squawk = '0000'; // Default squawk for unknown types
+      }
+
+      
+
+      return squawk;
+    }
+
     function addRow() {
       const table = document.getElementById('navigationLog').getElementsByTagName('tbody')[0];
       const newRow = table.insertRow();
@@ -343,6 +397,12 @@
         }
       });
 
+      // Generate and set squawk code
+      const squawkCode = generateIRFNumber(data.aircraftType, data.flightName);
+      data.squawkCode = squawkCode;
+      document.getElementById('squawkCode').textContent = ` Aircraft ID (squawk Code): ${squawkCode}`;
+      
+
       // Process navigation log
       const table = document.getElementById('navigationLog');
       const rows = table.querySelectorAll('tbody tr');
@@ -371,6 +431,18 @@
       const endpoint = 'https://arcane-magica.com/systems/atc/discord';
 
       // First attempt: standard JSON POST (will preflight)
+
+      if (!data.sessionID || !data.flightName) {
+        alert('Please fill in the required fields: Session ID and Flight Callsign.');
+        return;
+      }
+      if (data.copilot === undefined) {
+        delete data.copilot;
+      }
+      if (!data.flightName.includes("-")){
+        alert("Flight Callsign must include a hyphen (-). Example: charlie 1-1");
+        return;
+      }
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -385,7 +457,8 @@
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        alert('Flight plan submitted successfully!');
+        alert('Flight plan submitted successfully! downloaded flight plan for refrance.');
+        takeScreenshot();
         return;
       } catch (primaryError) {
         // Likely a CORS/preflight failure from the destination server
