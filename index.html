@@ -342,7 +342,7 @@
 
       const type = aircraftType.toUpperCase();
       const callsign = flightName.toUpperCase();
-      const calltype = `${callsign.charAt(0)} ${callsign.charAt(callsign.indexOf('-') - 1)} - ${callsign.charAt(callsign.indexOf('-') + 1)}-`
+      const calltype = `${callsign.charAt(0)}${callsign.charAt(callsign.indexOf('-') - 1)}-${callsign.charAt(callsign.indexOf('-') + 1)} -`
 
       if (type === 'AV-42C') {
         squawk = `${calltype}`+'1001';
@@ -401,7 +401,7 @@
       const squawkCode = generateIRFNumber(data.aircraftType, data.flightName);
       data.squawkCode = squawkCode;
       document.getElementById('squawkCode').textContent = ` Aircraft ID (squawk Code): ${squawkCode}`;
-      
+
 
       // Process navigation log
       const table = document.getElementById('navigationLog');
