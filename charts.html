@@ -336,13 +336,18 @@
         function showResult() {
             if (speech.resultValue) {
                 const spokenText = speech.resultString.toLowerCase();
+                if (spokenText.includes('select chart')) {
+                    var chartName = spokenText.replace('select chart', '').trim();
+                    
+                
                 charts.forEach((chart, index) => {
-                    if (spokenText.includes(chart.name.toLowerCase())) {
+                    if (chartName.includes(chart.name.toLowerCase())) {
                         const btn = document.querySelectorAll('.chart-btn')[index];
                         speak.speak('Loading ' + chart.name + ' chart');
                         selectChart(chart, btn);
                     }
                 });
+            }
             }
         }
 
