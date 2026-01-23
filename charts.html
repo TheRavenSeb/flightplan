@@ -225,7 +225,7 @@
 <body>
     <header>
         <h1>Raven's Airport Charts</h1>
-        <p>Select a chart from the list to view it below.</p>
+        <p>Select a chart from the list to view it below. You can also use voice commands by saying "Select chart [chart name]".</p>
         <button  class="open-window-btn" onclick="openSizedWindow()">Open Charts in kneepad configuration</button> <button class="DiscordButton" onclick= "window.location.href='https://discord.gg/FYwbKdxhjY'">Join our Discord</button>
     </header>
 
@@ -331,9 +331,7 @@
         var speak = new p5.Speech(); // speech synthesis object
         speech.onResult = showResult;
         speech.start(true, false); // continuous, interimResults
-        speech.onError(function() {
-            alert("To use voice commands, please allow microphone access! and or use chrome or edge browser");
-        });
+        
         
 
         function showResult() {
