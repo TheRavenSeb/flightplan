@@ -8,6 +8,7 @@
     <meta name="description" content="Flight Charts - View and select various airport charts.">
     <meta name="keywords" content="Flight Charts, Airport Charts, Aviation, Flight Planning, Navigation Charts,Vtol vr">
     <title>Map Charts</title>
+    <script src="https://cdn.jsdelivr.net/gh/IDMNYU/p5.js-speech@0.0.3/lib/p5.speech.js"></script>
     <style>
         * {
             margin: 0;
@@ -242,7 +243,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 Flight Charts. All rights reserved.</p>
+        <p>&copy; 2026 Flight Charts. All rights reserved.</p>
     </footer>
 
     <script>
@@ -322,6 +323,29 @@
             chartDisplay.innerHTML = `<img src="${chart.src}" alt="${chart.name}" height="750px">`;
         }
 
+
+        // allow for speech to change charts
+        var speech = new p5.SpeechRec();
+        var speak = new p5.Speech(); // speech synthesis object
+        speech.onResult = showResult;
+        speech.start(true, false); // continuous, interimResults
+        
+
+        function showResult() {
+            if (speech.resultValue) {
+                const spokenText = speech.resultString.toLowerCase();
+                charts.forEach((chart, index) => {
+                    if (spokenText.includes(chart.name.toLowerCase())) {
+                        const btn = document.querySelectorAll('.chart-btn')[index];
+                        speak.speak('Loading ' + chart.name + ' chart');
+                        selectChart(chart, btn);
+                    }
+                });
+            }
+        }
+
+
+       
         // Initialize
         loadCharts();
     </script>
