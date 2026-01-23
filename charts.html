@@ -331,6 +331,9 @@
         var speak = new p5.Speech(); // speech synthesis object
         speech.onResult = showResult;
         speech.start(true, false); // continuous, interimResults
+        speech.onError(function() {
+            alert("To use voice commands, please allow microphone access! and or use chrome or edge browser");
+        });
         
 
         function showResult() {
