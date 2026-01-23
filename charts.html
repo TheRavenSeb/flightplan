@@ -268,7 +268,7 @@
                 const chartNames = [
                     "Shark",
                     "Military",
-                    "Luna international",
+                    "Luna",
                 ];
 
                 // Try to load each chart image
@@ -337,6 +337,7 @@
         function showResult() {
             if (speech.resultValue) {
                 const spokenText = speech.resultString.toLowerCase();
+                console.log('Heard: ' + spokenText);
                 if (spokenText.includes('select chart')) {
                     var chartName = spokenText.replace('select chart', '').trim();
                     
